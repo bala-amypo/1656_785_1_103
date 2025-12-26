@@ -120,13 +120,15 @@
                         <artifactId>surefire-testng</artifactId>
                         <version>3.2.5</version>
                     </dependency>
-                    <dependency>
+                    <!-- LOMBOK -->
+<dependency>
     <groupId>org.projectlombok</groupId>
     <artifactId>lombok</artifactId>
     <version>1.18.32</version>
     <scope>provided</scope>
 </dependency>
 
+                    
                 </dependencies>
             </plugin>
 
