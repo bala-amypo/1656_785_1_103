@@ -1,43 +1,14 @@
-// package com.example.demo.controller;
-// import com.example.demo.config.JwtUtil;
-// import com.example.demo.dto.AuthRequest;
-// import com.example.demo.dto.AuthResponse;
-// import com.example.demo.model.Employee;
-// import com.example.demo.service.EmployeeService;
-// import jakarta.validation.Valid;
-// import org.springframework.http.ResponseEntity;
-// import org.springframework.web.bind.annotation.*;
-// @RestController
-// @RequestMapping("/api/auth")
-// public class AuthController {
-//     private final EmployeeService employeeService;
-//     private final JwtUtil jwtUtil;
-//     public AuthController(EmployeeService employeeService, JwtUtil jwtUtil){ this.employeeService=employeeService; this.jwtUtil=jwtUtil; }
-//     @PostMapping("/login")
-// public ResponseEntity<?> login(@Valid @RequestBody AuthRequest req){
-//     Employee emp = employeeService.findByEmail(req.getEmail());
-//     if (emp == null) {
-//         return ResponseEntity.status(401).body("Invalid credentials");
-//     }
-
-//     String token = jwtUtil.generateToken(
-//             emp.getId(),
-//             emp.getEmail(),
-//             emp.getRole()
-//     );
-
-//     return ResponseEntity.ok(new AuthResponse(token));
-// }
-
-// }
 package com.example.demo.controller;
 
 import com.example.demo.config.JwtUtil;
 import com.example.demo.dto.LoginRequest;
 import com.example.demo.dto.LoginResponse;
 import com.example.demo.model.User;
-import com.example.demo.repository.UserRepository;
 import com.example.demo.service.UserService;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -45,31 +16,47 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
-    private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthController(UserService userService, UserRepository userRepository, JwtUtil jwtUtil) {
+    public AuthController(
+            UserService userService,
+            JwtUtil jwtUtil,
+            PasswordEncoder passwordEncoder
+    ) {
         this.userService = userService;
-        this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
+        this.passwordEncoder = passwordEncoder;
     }
-
     @PostMapping("/register")
-    public User register(@RequestBody User user) {
-        return userService.register(user);
+    public ResponseEntity<User> register(@RequestBody User user) {
+
+        User savedUser = userService.register(user);
+        return new ResponseEntity<>(savedUser, HttpStatus.CREATED);
     }
-
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest req) {
-        User user = userRepository.findByEmail(req.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email"));
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
 
-        if (!user.getPassword().equals(req.getPassword())) {
-            throw new RuntimeException("Invalid password");
+        User user = userService.findByEmail(request.getEmail());
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new RuntimeException("Invalid credentials");
         }
 
-        String token = jwtUtil.generateToken(user);
+        String token = jwtUtil.generateToken(
+                user.getEmail(),
+                user.getRole(),
+                user.getId()
+        );
 
-        return new LoginResponse(token, user.getEmail(), user.getRole());
+        LoginResponse response = new LoginResponse(
+                "Login successful",
+                token,
+                user.getId(),
+                user.getEmail(),
+                user.getRole()
+        );
+
+        return ResponseEntity.ok(response);
     }
 }
