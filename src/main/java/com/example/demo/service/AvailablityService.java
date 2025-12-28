@@ -1,11 +1,16 @@
 package com.example.demo.service;
-import com.example.demo.model.EmployeeAvailability;
+
 import java.time.LocalDate;
 import java.util.List;
+import com.example.demo.model.EmployeeAvailability;
+
 public interface AvailabilityService {
-    EmployeeAvailability create(EmployeeAvailability av);
-    EmployeeAvailability update(Long id, EmployeeAvailability av);
-    EmployeeAvailability get(Long id);
-    List<EmployeeAvailability> getByDate(LocalDate date);
+
+    EmployeeAvailability create(EmployeeAvailability availability);
+
+    EmployeeAvailability update(Long id, EmployeeAvailability availability);
+
     void delete(Long id);
+
+    List<EmployeeAvailability> getByDate(LocalDate date);
 }
