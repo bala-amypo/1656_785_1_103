@@ -1,21 +1,33 @@
 package com.example.demo.exception;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<?> handleNotFound(ResourceNotFoundException ex){
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<?> handleBad(IllegalArgumentException ex){
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> handleAll(Exception ex){
-        ex.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal server error");
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiErrorResponse> handleRuntime(RuntimeException ex) {
+
+        String msg = ex.getMessage();
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        if (msg != null) {
+            if (msg.contains("exists")) {
+                status = HttpStatus.BAD_REQUEST;
+            } else if (msg.contains("after")) {
+                status = HttpStatus.BAD_REQUEST;
+            } else if (msg.contains("not found")) {
+                status = HttpStatus.NOT_FOUND;
+            } else if (msg.contains("must") || msg.contains("invalid")) {
+                status = HttpStatus.BAD_REQUEST;
+            }
+        }
+
+        return ResponseEntity
+                .status(status)
+                .body(new ApiErrorResponse(status.value(), msg));
     }
 }
