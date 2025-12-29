@@ -43,9 +43,7 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateToken(Long userId, String email, String role) {
-        return generateToken(userId, email, role);
-    }
+
 
 
 
