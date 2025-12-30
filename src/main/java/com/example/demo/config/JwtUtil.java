@@ -30,8 +30,6 @@ public class JwtUtil {
         this.expirationMs = expirationMs;
     }
 
-
-
     public String generateToken(Long userId, String email, String role) {
         return Jwts.builder()
                 .claim("userId", userId)
@@ -43,34 +41,45 @@ public class JwtUtil {
                 .compact();
     }
 
-
-
-
-
-    public Jws<Claims> validateToken(String token) {
+    // -----------------------------
+    // NEW: keep this for app logic
+    // -----------------------------
+    public Jws<Claims> parseToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token);
     }
 
+    // ---------------------------------------------------
+    // IMPORTANT: this signature MUST match what tests use
+    // ---------------------------------------------------
+    public boolean validateToken(String token) {
+        try {
+            parseToken(token);   // if parsing fails → exception
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     public Claims extractAllClaims(String token) {
-        return validateToken(token).getBody();
+        return parseToken(token).getBody();
     }
 
     public String extractEmail(String token) {
         return extractAllClaims(token).get("email", String.class);
     }
 
-
+    // ---------------------------------------------------
+    // IMPORTANT: tests call this exact method name
+    // ---------------------------------------------------
+    public String getEmailFromToken(String token) {
+        return extractEmail(token);
+    }
 
     public ResponseEntity<Boolean> isTokenValid(String token) {
-        try {
-            validateToken(token);
-            return ResponseEntity.ok(true);
-        } catch (Exception e) {
-            return ResponseEntity.ok(false);
-        }
+        return ResponseEntity.ok(validateToken(token));
     }
 
     public ResponseEntity<Boolean> isTokenValid(String token, String email) {
