@@ -1,4 +1,4 @@
-package com.example.demo.util;
+package com.example.demo.config;
 
 import java.util.Date;
 import javax.crypto.SecretKey;
